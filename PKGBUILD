@@ -9,7 +9,7 @@ pkgver=10.0.0
 _pkgver=1
 _islver=0.21
 pkgrel=`date +%Y%m%d`
-_snapshot=10-20190721
+_snapshot=10-20190804
 pkgdesc="The GNU Compiler Collection"
 arch=('x86_64')
 license=('GPL' 'LGPL' 'FDL' 'custom')
@@ -96,10 +96,9 @@ build() {
 		--enable-checking=release \
 		--enable-default-pie \
 		--enable-default-ssp \
-		--enable-cet=auto
-
-#		--with-arch=corei7 \
-#		--with-cpu=corei7
+		--enable-cet=auto \
+		--with-arch=corei7 \
+		--with-cpu=corei7
 
 	make -j8
 
