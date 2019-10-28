@@ -154,17 +154,17 @@ package_gcc() {
   install -m755 -t "$pkgdir/usr/bin/" gcc/gcov{,-tool}
   install -m755 -t "$pkgdir/${_libdir}/" gcc/{cc1,cc1plus,collect2,lto1}
 
-  make -j8 -C $CHOST/libgcc DESTDIR="$pkgdir" install
+#@  make -j8 -C $CHOST/libgcc DESTDIR="$pkgdir" install
 
-  make -j8 -C $CHOST/libstdc++-v3/src DESTDIR="$pkgdir" install
-  make -j8 -C $CHOST/libstdc++-v3/include DESTDIR="$pkgdir" install
-  make -j8 -C $CHOST/libstdc++-v3/libsupc++ DESTDIR="$pkgdir" install
-  make -j8 -C $CHOST/libstdc++-v3/python DESTDIR="$pkgdir" install
+#@  make -j8 -C $CHOST/libstdc++-v3/src DESTDIR="$pkgdir" install
+#@  make -j8 -C $CHOST/libstdc++-v3/include DESTDIR="$pkgdir" install
+#@  make -j8 -C $CHOST/libstdc++-v3/libsupc++ DESTDIR="$pkgdir" install
+#@  make -j8 -C $CHOST/libstdc++-v3/python DESTDIR="$pkgdir" install
 
   make DESTDIR="$pkgdir" install-libcc1
   install -d "$pkgdir/usr/share/gdb/auto-load/usr/lib"
-  mv "$pkgdir"/usr/lib/libstdc++.so.6.*-gdb.py \
-    "$pkgdir/usr/share/gdb/auto-load/usr/lib/"
+#@  mv "$pkgdir"/usr/lib/libstdc++.so.6.*-gdb.py \
+#@    "$pkgdir/usr/share/gdb/auto-load/usr/lib/"
 
   make DESTDIR="$pkgdir" install-fixincludes
   make -j8 -C gcc DESTDIR="$pkgdir" install-mkheaders
@@ -197,8 +197,8 @@ package_gcc() {
   install -Dm755 "$srcdir/c89" "$pkgdir/usr/bin/c89"
   install -Dm755 "$srcdir/c99" "$pkgdir/usr/bin/c99"
 
-  # install the libstdc++ man pages
-  make -j8 -C $CHOST/libstdc++-v3/doc DESTDIR="$pkgdir" doc-install-man
+#@  # install the libstdc++ man pages
+#@  make -j8 -C $CHOST/libstdc++-v3/doc DESTDIR="$pkgdir" doc-install-man
 
   # byte-compile python libraries
   python -m compileall "$pkgdir/usr/share/gcc-${pkgver%%+*}/"
