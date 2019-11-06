@@ -9,7 +9,7 @@ pkgver=10.0.0
 _pkgver=1
 _islver=0.21
 pkgrel=`date +%Y%m%d`
-_snapshot=10-20191027
+_snapshot=10-20191103
 pkgdesc="The GNU Compiler Collection"
 arch=('x86_64')
 license=('GPL' 'LGPL' 'FDL' 'custom')
@@ -93,17 +93,17 @@ build() {
 		--enable-gnu-indirect-function \
 		--disable-multilib \
 		--disable-werror \
-		--enable-checking=release \
 		--enable-default-pie \
 		--enable-default-ssp \
 		--enable-cet=auto \
 		--with-arch=corei7 \
-		--with-cpu=corei7
+		--with-cpu=corei7 \
+		gdc_include_dir=/usr/include/dlang/gdc
 
-	make -j8
+	make -j71
 
-	# make -j8 documentation
-	make -j8 -C $CHOST/libstdc++-v3/doc doc-man-doxygen
+	# make -j71 documentation
+	make -j71 -C $CHOST/libstdc++-v3/doc doc-man-doxygen
 }
 
 package_gcc-libs() {
@@ -114,7 +114,7 @@ package_gcc-libs() {
   provides=(libubsan.so libasan.so libtsan.so liblsan.so)
 
   cd gcc-build
-  make -j8 -C $CHOST/libgcc DESTDIR="$pkgdir" install-shared
+  make -j71 -C $CHOST/libgcc DESTDIR="$pkgdir" install-shared
   rm -f "$pkgdir/$_libdir/libgcc_eh.a"
 
   for lib in libatomic \
@@ -124,15 +124,19 @@ package_gcc-libs() {
              libsanitizer/{a,l,ub,t}san \
              libstdc++-v3/src \
              libvtv; do
-    make -j8 -C $CHOST/$lib DESTDIR="$pkgdir" install-toolexeclibLTLIBRARIES
+    make -j71 -C $CHOST/$lib DESTDIR="$pkgdir" install-toolexeclibLTLIBRARIES
   done
 
-  make -j8 -C $CHOST/libstdc++-v3/po DESTDIR="$pkgdir" install
+  make -j71 -C $CHOST/libstdc++-v3/po DESTDIR="$pkgdir" install
+
+  #make -j71 -C $CHOST/libphobos DESTDIR="$pkgdir" install
+  rm -rf "$pkgdir"/usr/lib/gcc/x86_64-pc-linux-gnu/$pkgver/include/d/
+  #rm -f "$pkgdir"/usr/lib/libgphobos.spec
 
   for lib in libgomp \
              libitm \
              libquadmath; do
-    make -j8 -C $CHOST/$lib DESTDIR="$pkgdir" install-info
+    make -j71 -C $CHOST/$lib DESTDIR="$pkgdir" install-info
   done
 
   # Install Runtime Library Exception
@@ -148,47 +152,51 @@ package_gcc() {
 
   cd gcc-build
 
-  make -j8 -C gcc DESTDIR="$pkgdir" install-driver install-cpp install-gcc-ar \
+  make -j71 -C gcc DESTDIR="$pkgdir" install-driver install-cpp install-gcc-ar \
     c++.install-common install-headers install-plugin install-lto-wrapper
 
   install -m755 -t "$pkgdir/usr/bin/" gcc/gcov{,-tool}
   install -m755 -t "$pkgdir/${_libdir}/" gcc/{cc1,cc1plus,collect2,lto1}
 
-#@  make -j8 -C $CHOST/libgcc DESTDIR="$pkgdir" install
+  make -j71 -C $CHOST/libgcc DESTDIR="$pkgdir" install
+  rm -f "$pkgdir"/usr/lib/libgcc_s.so*
 
-#@  make -j8 -C $CHOST/libstdc++-v3/src DESTDIR="$pkgdir" install
-#@  make -j8 -C $CHOST/libstdc++-v3/include DESTDIR="$pkgdir" install
-#@  make -j8 -C $CHOST/libstdc++-v3/libsupc++ DESTDIR="$pkgdir" install
-#@  make -j8 -C $CHOST/libstdc++-v3/python DESTDIR="$pkgdir" install
+  make -j71 -C $CHOST/libstdc++-v3/src DESTDIR="$pkgdir" install
+  make -j71 -C $CHOST/libstdc++-v3/include DESTDIR="$pkgdir" install
+  make -j71 -C $CHOST/libstdc++-v3/libsupc++ DESTDIR="$pkgdir" install
+  make -j71 -C $CHOST/libstdc++-v3/python DESTDIR="$pkgdir" install
 
   make DESTDIR="$pkgdir" install-libcc1
   install -d "$pkgdir/usr/share/gdb/auto-load/usr/lib"
-#@  mv "$pkgdir"/usr/lib/libstdc++.so.6.*-gdb.py \
-#@    "$pkgdir/usr/share/gdb/auto-load/usr/lib/"
+  mv "$pkgdir"/usr/lib/libstdc++.so.6.*-gdb.py \
+    "$pkgdir/usr/share/gdb/auto-load/usr/lib/"
+  rm "$pkgdir"/usr/lib/libstdc++.so*
 
   make DESTDIR="$pkgdir" install-fixincludes
-  make -j8 -C gcc DESTDIR="$pkgdir" install-mkheaders
+  make -j71 -C gcc DESTDIR="$pkgdir" install-mkheaders
 
-  make -j8 -C lto-plugin DESTDIR="$pkgdir" install
+  make -j71 -C lto-plugin DESTDIR="$pkgdir" install
   install -dm755 "$pkgdir"/usr/lib/bfd-plugins/
   ln -s /${_libdir}/liblto_plugin.so \
     "$pkgdir/usr/lib/bfd-plugins/"
 
-  make -j8 -C $CHOST/libgomp DESTDIR="$pkgdir" install-nodist_{libsubinclude,toolexeclib}HEADERS
-  make -j8 -C $CHOST/libitm DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
-  make -j8 -C $CHOST/libquadmath DESTDIR="$pkgdir" install-nodist_libsubincludeHEADERS
-  make -j8 -C $CHOST/libsanitizer DESTDIR="$pkgdir" install-nodist_{saninclude,toolexeclib}HEADERS
-  make -j8 -C $CHOST/libsanitizer/asan DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
-  make -j8 -C $CHOST/libsanitizer/tsan DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
-  make -j8 -C $CHOST/libsanitizer/lsan DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
+  make -j71 -C $CHOST/libgomp DESTDIR="$pkgdir" install-nodist_{libsubinclude,toolexeclib}HEADERS
+  make -j71 -C $CHOST/libitm DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
+  make -j71 -C $CHOST/libquadmath DESTDIR="$pkgdir" install-nodist_libsubincludeHEADERS
+  make -j71 -C $CHOST/libsanitizer DESTDIR="$pkgdir" install-nodist_{saninclude,toolexeclib}HEADERS
+  make -j71 -C $CHOST/libsanitizer/asan DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
+  make -j71 -C $CHOST/libsanitizer/tsan DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
+  make -j71 -C $CHOST/libsanitizer/lsan DESTDIR="$pkgdir" install-nodist_toolexeclibHEADERS
 
-  make -j8 -C libiberty DESTDIR="$pkgdir" install
+  make -j71 -C libiberty DESTDIR="$pkgdir" install
   install -m644 libiberty/pic/libiberty.a "$pkgdir/usr/lib"
 
-  make -j8 -C gcc DESTDIR="$pkgdir" install-man install-info
+  make -j71 -C gcc DESTDIR="$pkgdir" install-man install-info
+  #rm "$pkgdir"/usr/share/man/man1/gdc.1
+  #rm "$pkgdir"/usr/share/info/{gnat-style,gnat_rm,gnat_ugn}.info
 
-  make -j8 -C libcpp DESTDIR="$pkgdir" install
-  make -j8 -C gcc DESTDIR="$pkgdir" install-po
+  make -j71 -C libcpp DESTDIR="$pkgdir" install
+  make -j71 -C gcc DESTDIR="$pkgdir" install-po
 
   # many packages expect this symlink
   ln -s gcc "$pkgdir"/usr/bin/cc
@@ -197,8 +205,8 @@ package_gcc() {
   install -Dm755 "$srcdir/c89" "$pkgdir/usr/bin/c89"
   install -Dm755 "$srcdir/c99" "$pkgdir/usr/bin/c99"
 
-#@  # install the libstdc++ man pages
-#@  make -j8 -C $CHOST/libstdc++-v3/doc DESTDIR="$pkgdir" doc-install-man
+  # install the libstdc++ man pages
+  make -j71 -C $CHOST/libstdc++-v3/doc DESTDIR="$pkgdir" doc-install-man
 
   # byte-compile python libraries
   python -m compileall "$pkgdir/usr/share/gcc-${pkgver%%+*}/"
